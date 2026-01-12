@@ -3,143 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Uploader</title>
+    <title>Media Uploader</title>
     <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
             margin: 0;
+            color: #1f2937;
         }
         .container {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             text-align: center;
-            width: 100%;
-            max-width: 400px;
+            width: 90%;
+            max-width: 480px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+        .container:hover {
+            transform: translateY(-5px);
         }
         h1 {
-            color: #333;
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
+            color: #111827;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        p.subtitle {
+            color: #6b7280;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
         }
         .upload-area {
-            border: 2px dashed #cbd5e0;
-            border-radius: 8px;
-            padding: 2rem;
+            border: 2px dashed #e5e7eb;
+            border-radius: 12px;
+            padding: 3rem 1.5rem;
             cursor: pointer;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
+            background-color: #f9fafb;
+            position: relative;
+            overflow: hidden;
         }
-        .upload-area:hover {
-            border-color: #4299e1;
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary-color);
+            background-color: #eef2ff;
+        }
+        .icon-cloud {
+            font-size: 3rem;
+            color: #9ca3af;
+            margin-bottom: 1rem;
+            transition: color 0.3s;
+        }
+        .upload-area:hover .icon-cloud {
+            color: var(--primary-color);
         }
         input[type="file"] {
             display: none;
         }
         .btn {
-            background-color: #4299e1;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
+            padding: 12px 24px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
-            margin-top: 1rem;
-            transition: background-color 0.3s;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            transition: all 0.2s;
             width: 100%;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
         }
         .btn:hover {
-            background-color: #3182ce;
+            background-color: var(--primary-hover);
+            box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.5);
         }
         .btn:disabled {
-            background-color: #a0aec0;
+            background-color: #d1d5db;
             cursor: not-allowed;
+            box-shadow: none;
         }
-        #preview {
-            margin-top: 1.5rem;
-            max-width: 100%;
-            border-radius: 8px;
+        
+        /* Media Previews */
+        .preview-container {
+            margin-top: 2rem;
+            border-radius: 12px;
+            overflow: hidden;
             display: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: #000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        #status {
-            margin-top: 1rem;
-            color: #718096;
+        #preview-img, #preview-video {
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        /* Links */
+        .link-container {
+            margin-top: 1.5rem;
+            display: none;
+            text-align: left;
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        .link-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        .link-url {
+            word-break: break-all;
+            color: var(--primary-color);
+            text-decoration: none;
             font-size: 0.9rem;
         }
-        .link-container {
-            margin-top: 1rem;
-            display: none;
-            word-break: break-all;
-            background: #edf2f7;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
+        .link-url:hover {
+            text-decoration: underline;
         }
+
+        /* Status */
+        #status {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            min-height: 1.2rem;
+        }
+        .status-success { color: #059669; }
+        .status-error { color: #dc2626; }
+
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Upload Image</h1>
+    <h1>Share Media</h1>
+    <p class="subtitle">Upload images or videos (max 40MB)</p>
+    
     <div class="upload-area" id="drop-zone">
-        <p>Click or Drag & Drop to upload</p>
-        <input type="file" id="fileInput" accept="image/*">
+        <div class="icon-cloud">☁️</div>
+        <p><strong>Click to upload</strong> or drag and drop</p>
+        <p style="font-size: 0.8rem; color: #9ca3af; margin-top: 0.5rem">PNG, JPG, MP4, WEBM...</p>
+        <input type="file" id="fileInput" accept="image/*,video/*">
     </div>
-    <button class="btn" id="uploadBtn" disabled>Upload</button>
+
+    <button class="btn" id="uploadBtn" disabled>Upload File</button>
     
     <div id="status"></div>
-    <div class="link-container" id="linkContainer">
-        Link: <a href="#" id="imageLink" target="_blank"></a>
+
+    <div class="preview-container" id="previewContainer">
+        <img id="preview-img" alt="Preview" style="display: none;">
+        <video id="preview-video" controls style="display: none; width: 100%;"></video>
     </div>
-    <img id="preview" alt="Uploaded Image">
+
+    <div class="link-container" id="linkContainer">
+        <div class="link-label">Direct Link</div>
+        <a href="#" id="imageLink" class="link-url" target="_blank"></a>
+    </div>
 </div>
 
 <script>
     const fileInput = document.getElementById('fileInput');
     const uploadBtn = document.getElementById('uploadBtn');
     const statusDiv = document.getElementById('status');
-    const previewImg = document.getElementById('preview');
     const dropZone = document.getElementById('drop-zone');
     const linkContainer = document.getElementById('linkContainer');
     const imageLink = document.getElementById('imageLink');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImg = document.getElementById('preview-img');
+    const previewVideo = document.getElementById('preview-video');
 
+    // Drag & Drop Visuals
     dropZone.addEventListener('click', () => fileInput.click());
-
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = '#4299e1';
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
     });
 
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.style.borderColor = '#cbd5e0';
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        });
     });
 
     dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = '#cbd5e0';
         if (e.dataTransfer.files.length) {
             fileInput.files = e.dataTransfer.files;
-            handleFile(e.dataTransfer.files[0]);
+            handleFileSelection(fileInput.files[0]);
         }
     });
 
     fileInput.addEventListener('change', () => {
         if (fileInput.files.length) {
-            handleFile(fileInput.files[0]);
+            handleFileSelection(fileInput.files[0]);
         }
     });
 
-    function handleFile(file) {
+    function handleFileSelection(file) {
         uploadBtn.disabled = false;
-        statusDiv.textContent = `Selected: ${file.name}`;
+        statusDiv.className = '';
+        statusDiv.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        
+        // Reset UI
         linkContainer.style.display = 'none';
+        previewContainer.style.display = 'none';
         previewImg.style.display = 'none';
+        previewVideo.style.display = 'none';
+        previewVideo.src = '';
     }
 
     uploadBtn.addEventListener('click', async () => {
@@ -160,18 +248,32 @@
             });
 
             if (!response.ok) {
-                throw new Error('Upload failed');
+                const errText = await response.text();
+                throw new Error(response.statusText);
             }
 
             const data = await response.json();
             
-            // Success
-            uploadBtn.textContent = 'Upload';
+            // Success State
+            uploadBtn.textContent = 'Upload File';
             statusDiv.textContent = 'Upload successful!';
+            statusDiv.className = 'status-success';
             
-            previewImg.src = data.url;
-            previewImg.style.display = 'block';
+            // Handle Preview
+            previewContainer.style.display = 'block';
             
+            if (file.type.startsWith('video/')) {
+                previewVideo.src = data.url;
+                previewVideo.style.display = 'block';
+                previewImg.style.display = 'none';
+                previewVideo.play();
+            } else {
+                previewImg.src = data.url;
+                previewImg.style.display = 'block';
+                previewVideo.style.display = 'none';
+            }
+            
+            // Show Link
             imageLink.href = data.url;
             imageLink.textContent = window.location.origin + data.url;
             linkContainer.style.display = 'block';
@@ -179,8 +281,9 @@
         } catch (error) {
             console.error(error);
             uploadBtn.disabled = false;
-            uploadBtn.textContent = 'Upload';
-            statusDiv.textContent = 'Error uploading file.';
+            uploadBtn.textContent = 'Upload File';
+            statusDiv.textContent = 'Error uploading file (Check size limit?)';
+            statusDiv.className = 'status-error';
         }
     });
 </script>
