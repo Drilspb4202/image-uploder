@@ -4,7 +4,7 @@ services:
       context: ./api
       dockerfile: Dockerfile
     volumes:
-      - uploader_data:/data/uploads
+      - ./uploads:/data/uploads
     expose:
       - "8000"
     restart: always
@@ -19,6 +19,3 @@ services:
     ports:
       - "8090:80"
     restart: always
-
-volumes:
-  uploader_data:
