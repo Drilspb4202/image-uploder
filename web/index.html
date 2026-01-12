@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Uploader</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #4299e1;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .btn {
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 1rem;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .btn:hover {
+            background-color: #3182ce;
+        }
+        .btn:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+        }
+        #preview {
+            margin-top: 1.5rem;
+            max-width: 100%;
+            border-radius: 8px;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #status {
+            margin-top: 1rem;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        .link-container {
+            margin-top: 1rem;
+            display: none;
+            word-break: break-all;
+            background: #edf2f7;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Upload Image</h1>
+    <div class="upload-area" id="drop-zone">
+        <p>Click or Drag & Drop to upload</p>
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+    <button class="btn" id="uploadBtn" disabled>Upload</button>
+    
+    <div id="status"></div>
+    <div class="link-container" id="linkContainer">
+        Link: <a href="#" id="imageLink" target="_blank"></a>
+    </div>
+    <img id="preview" alt="Uploaded Image">
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const statusDiv = document.getElementById('status');
+    const previewImg = document.getElementById('preview');
+    const dropZone = document.getElementById('drop-zone');
+    const linkContainer = document.getElementById('linkContainer');
+    const imageLink = document.getElementById('imageLink');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#4299e1';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = '#cbd5e0';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#cbd5e0';
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            handleFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+            handleFile(fileInput.files[0]);
+        }
+    });
+
+    function handleFile(file) {
+        uploadBtn.disabled = false;
+        statusDiv.textContent = `Selected: ${file.name}`;
+        linkContainer.style.display = 'none';
+        previewImg.style.display = 'none';
+    }
+
+    uploadBtn.addEventListener('click', async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = 'Uploading...';
+        statusDiv.textContent = '';
+
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+
+            const data = await response.json();
+            
+            // Success
+            uploadBtn.textContent = 'Upload';
+            statusDiv.textContent = 'Upload successful!';
+            
+            previewImg.src = data.url;
+            previewImg.style.display = 'block';
+            
+            imageLink.href = data.url;
+            imageLink.textContent = window.location.origin + data.url;
+            linkContainer.style.display = 'block';
+
+        } catch (error) {
+            console.error(error);
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload';
+            statusDiv.textContent = 'Error uploading file.';
+        }
+    });
+</script>
+
+</body>
+</html>
